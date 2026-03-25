@@ -32,8 +32,12 @@ namespace hooks {
 		auto status = MH_Initialize();
 		printf("init_status : %s\n", std::string(MH_StatusToString(status)).c_str());
 
-		auto get_player_ped = memory::find_signature(0, "\x40\x53\x48\x83\xEC\x20\x33\xDB\x81\xF9", "xxxxxxxxxx");
-		status = MH_CreateHook((PVOID)get_player_ped, get_player_ped_hook, reinterpret_cast<void**>(&original::o_get_player_ped));
+		auto get_player_ped = memory::find_signature(0, "\x40\x53\x48\x83\xEC\x20\x33\xDB\x81\xF9\x00\x00\x00\x00", "xxxxxxxxxx????");
+		uintptr_t addr = memory::find_signature(0, "\xE8\x00\x00\x00\x00\x42\x8B\x9C\xFE\x00\x00\x00\x00", "x????xxxx????");
+		if (addr) {
+			int32_t offset = *(int32_t*)(addr + 1);
+			m_get_cmd_addr = (get_cmd_addr_t)(addr + 5 + offset);
+		}		status = MH_CreateHook((PVOID)get_player_ped, get_player_ped_hook, reinterpret_cast<void**>(&original::o_get_player_ped));
 		printf("create_status : %s\n", std::string(MH_StatusToString(status)).c_str());
 		status = MH_EnableHook((PVOID)get_player_ped);
 		printf("enable_status : %s\n\n", std::string(MH_StatusToString(status)).c_str());

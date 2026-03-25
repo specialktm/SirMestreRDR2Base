@@ -1,10 +1,10 @@
 #pragma once
 #include "stdafx.h"
 
-typedef DWORD Void;
-typedef DWORD Any;
-typedef DWORD uint;
-typedef DWORD Hash;
+typedef int Void;
+typedef int Any;
+typedef int uint;
+typedef int Hash;
 typedef int Entity;
 typedef int Player;
 typedef int FireId;
@@ -27,6 +27,13 @@ typedef int TaskSequence;
 typedef int ColourIndex;
 typedef int Sphere;
 typedef int INT, ScrHandle;
+typedef int AnimScene;
+typedef int Volume;
+typedef int ItemSet;
+typedef int PropSet;
+typedef int PopZone;
+typedef int PersChar;
+typedef int Prompt;
 struct Vector3
 {
 	float x;
@@ -68,7 +75,7 @@ public:
 		*(T*)(stack + argCount++) = arg;
 
 		if constexpr (sizeof...(Args) > 0)
-			Push(args...);
+			Push((args)...);
 	}
 
 	template<class T>
@@ -112,9 +119,21 @@ public:
 };
 
 typedef void(__cdecl * Handler)(Context * context);
+static void invoke_seh(Handler fn, Context* ctx) {
+	__try {
+		fn(ctx);
+	}
+	__except (EXCEPTION_EXECUTE_HANDLER) {
+	}
+	__try {
+		ctx->CopyResults();
+	}
+	__except (EXCEPTION_EXECUTE_HANDLER) {
+	}
+}
+
 template<class Retn = uint64_t, class... Args>
-static Retn invoke_(Handler fn, Args... args)
-{
+static Retn invoke_(Handler fn, Args... args) {
 	static Context ctx;
 
 	if (!fn) return Retn();
@@ -122,33 +141,23 @@ static Retn invoke_(Handler fn, Args... args)
 	ctx.Reset();
 
 	if constexpr (sizeof...(Args) > 0)
-		ctx.Push(args...);
+		ctx.Push((args)...);
 
-	__try {
-		fn(&ctx);
-	}
-	__except (EXCEPTION_EXECUTE_HANDLER) {
-	}
-	__try {
-		ctx.CopyResults();
-	}
-	__except (EXCEPTION_EXECUTE_HANDLER) {
-	}
+	invoke_seh(fn, &ctx);
 
 	return ctx.Result<Retn>();
 }
+using get_cmd_addr_t = Handler(*)(uint64_t hash);
+inline get_cmd_addr_t m_get_cmd_addr{};
 
 static Handler get_handler(uintptr_t hash_) {
-	static auto base_address = (uintptr_t)GetModuleHandleA(0);
-	auto it = nativehash_to_address_table.find(hash_);
-	if (it != nativehash_to_address_table.end()) {
-		if (it->first == hash_)
-			return (Handler)(base_address + it->second);
+	if (m_get_cmd_addr) {
+		return m_get_cmd_addr(hash_);
 	}
 	return 0;
 }
 
 template<class Retn = uint64_t, class... Args>
 static Retn invoke(uint64_t hashName, Args... args) {
-	return invoke_<Retn>(get_handler(hashName), args...);
+	return invoke_<Retn>(get_handler(hashName), (args)...);
 }

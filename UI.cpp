@@ -22,11 +22,11 @@ namespace UI {
 	void drawText(std::string text, float font_size, float x, float y, rgba rgba, bool centered = false) {
 		x /= globals::resolution.right; y /= globals::resolution.bottom;
 		font_size /= 100.f;
-		HUD::SET_TEXT_SCALE(font_size, font_size);
-		HUD::_SET_TEXT_COLOR(rgba.r, rgba.g, rgba.b, rgba.a);
+		UIDEBUG::BG_SET_TEXT_SCALE_(font_size, font_size);
+		UIDEBUG::BG_SET_TEXT_COLOR_(rgba.r, rgba.g, rgba.b, rgba.a);
 		HUD::SET_TEXT_CENTRE(centered);
-		auto str = MISC::_CREATE_VAR_STRING(10, "LITERAL_STRING", text.c_str());
-		HUD::_DRAW_TEXT(str, x, y);
+		auto str = MISC::VAR_STRING(10, "LITERAL_STRING", text.c_str());
+		UIDEBUG::BG_DISPLAY_TEXT_(str, x, y);
 	}
 
 	void Title(const char* title) {

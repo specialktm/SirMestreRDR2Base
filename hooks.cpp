@@ -37,7 +37,8 @@ namespace hooks {
 		if (addr) {
 			int32_t offset = *(int32_t*)(addr + 1);
 			m_get_cmd_addr = (get_cmd_addr_t)(addr + 5 + offset);
-		}		status = MH_CreateHook((PVOID)get_player_ped, get_player_ped_hook, reinterpret_cast<void**>(&original::o_get_player_ped));
+		}		
+		status = MH_CreateHook((PVOID)get_player_ped, get_player_ped_hook, reinterpret_cast<void**>(&original::o_get_player_ped));
 		printf("create_status : %s\n", std::string(MH_StatusToString(status)).c_str());
 		status = MH_EnableHook((PVOID)get_player_ped);
 		printf("enable_status : %s\n\n", std::string(MH_StatusToString(status)).c_str());
